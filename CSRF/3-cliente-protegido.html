@@ -83,7 +83,7 @@
             <label>Valor (R$)</label>
             <input type="number" id="valor" placeholder="100.00" value="200">
 
-            <label style="color: #d35400;">Token de Autenticação (MFA)</label>
+            <label style="color: #d35400;">Token Anti-CSRF</label>
             <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
                 <input type="text" id="token" class="token-input" placeholder="Ex: CSRF-XXX" style="margin-top: 0; width: 60%;">
                 <button type="button" onclick="solicitarToken()" style="background: #34495e; margin-top: 0; width: 40%; font-size: 13px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">Obter SMS</button>

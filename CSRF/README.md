@@ -10,7 +10,7 @@ O objetivo é visualizar como um site malicioso consegue forçar o navegador de 
 |---------|-------|
 | **`1-cliente-vulneravel.html`** | Banco da vítima **sem** proteção anti-CSRF (login, Face ID e transferência). |
 | **`2-servidor-vulneravel.html`** | API/servidor que aprova as transferências **sem** validar token. |
-| **`3-cliente-protegido.html`** | Banco da vítima **com** Token de Autenticação (MFA via SMS simulado). |
+| **`3-cliente-protegido.html`** | Banco da vítima **com** Token Anti-CSRF (entregue via SMS simulado para fins didáticos). |
 | **`4-servidor-protegido.html`** | API/servidor que **valida o token** antes de aprovar a transferência. |
 | **`5-site-hacker.html`** | Site malicioso que dispara a requisição forjada contra o banco da vítima. |
 
