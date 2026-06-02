@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratório CSRF — Simulação Educativa</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #ffffff;
+            color: #2c3e50;
+            margin: 0;
+            padding: 40px 20px 60px;
+            min-height: 100vh;
+        }
+        .wrap { max-width: 920px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 10px; }
+        h1 { font-size: 30px; margin: 0 0 8px; letter-spacing: 0.5px; color: #1f2d3d; }
+        h1 .tag { color: #3498db; }
+        .subtitle { color: #5d6d7e; font-size: 15px; margin: 0 auto 28px; max-width: 620px; line-height: 1.5; }
+
+        .disclaimer {
+            background: #eef6fc;
+            border: 1px solid #c9e2f5;
+            border-radius: 10px;
+            padding: 14px 18px;
+            font-size: 13px;
+            color: #34495e;
+            line-height: 1.55;
+            margin-bottom: 36px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+        .disclaimer .icon {
+            flex: 0 0 auto;
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            background: #3498db;
+            color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-style: italic; font-weight: bold; font-family: Georgia, serif; font-size: 17px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #95a5a6;
+            margin: 30px 0 14px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .section-title::after { content: ""; flex: 1; height: 1px; background: #e3e8ee; }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+        .card {
+            display: block;
+            text-decoration: none;
+            color: inherit;
+            background: #ffffff;
+            border: 1px solid #e3e8ee;
+            border-radius: 10px;
+            padding: 18px 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+        }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+        .card .num {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 28px; height: 28px; border-radius: 50%;
+            font-size: 13px; font-weight: bold;
+            background: #edf1f5; color: #7f8c8d;
+            margin-bottom: 12px;
+        }
+        .card h3 { margin: 0 0 6px; font-size: 17px; color: #1f2d3d; }
+        .card p { margin: 0; font-size: 13px; color: #6b7b8c; line-height: 1.45; }
+        .card .open { margin-top: 12px; font-size: 12px; font-weight: bold; color: #3498db; }
+
+        .card.vuln:hover { border-color: rgba(231, 76, 60, 0.55); }
+        .card.vuln .num { background: #e74c3c; color: #fff; }
+        .card.prot:hover { border-color: rgba(39, 174, 96, 0.55); }
+        .card.prot .num { background: #27ae60; color: #fff; }
+        .card.hacker:hover { border-color: rgba(142, 68, 173, 0.55); }
+        .card.hacker .num { background: #8e44ad; color: #fff; }
+
+        .single { grid-template-columns: 1fr; }
+
+        .steps {
+            background: #f8fafc;
+            border: 1px solid #e3e8ee;
+            border-radius: 10px;
+            padding: 18px 22px;
+            font-size: 13.5px;
+            color: #34495e;
+            line-height: 1.7;
+            margin-top: 8px;
+        }
+        .steps b { color: #1f2d3d; }
+        footer { text-align: center; color: #aab7c4; font-size: 12px; margin-top: 40px; }
+
+        @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <header>
+            <h1>Laboratório <span class="tag">CSRF</span></h1>
+            <p class="subtitle">Ambiente didático para demonstrar o ataque de <b>Cross-Site Request Forgery</b> e a proteção com <b>Token Anti-CSRF</b>. Clique nos cartões para abrir cada página em uma nova aba.</p>
+        </header>
+
+        <div class="disclaimer">
+            <div class="icon">i</div>
+            <div>
+                <b>Simulação Educativa.</b> Este site foi desenvolvido por estudantes da <b>UFF</b> como Trabalho de Conclusão de Curso (TCC).
+                Nenhuma conta ou transação é real — todas são fictícias, criadas apenas para fins didáticos.
+                Autores: <b>Guilherme Moura</b> e <b>Natã Rangel</b>.
+            </div>
+        </div>
+
+        <div class="section-title">Cenário 1 — Banco Vulnerável (sem proteção)</div>
+        <div class="grid">
+            <a class="card vuln" href="1-cliente-vulneravel.html" target="_blank" rel="noopener">
+                <span class="num">1</span>
+                <h3>Cliente — Banco (Vítima)</h3>
+                <p>Conta do usuário sem token Anti-CSRF. Faça login e mantenha a sessão ativa.</p>
+                <div class="open">Abrir em nova aba →</div>
+            </a>
+            <a class="card vuln" href="2-servidor-vulneravel.html" target="_blank" rel="noopener">
+                <span class="num">2</span>
+                <h3>Servidor — API Desprotegida</h3>
+                <p>Painel de logs que aprova transferências sem validar nenhum token.</p>
+                <div class="open">Abrir em nova aba →</div>
+            </a>
+        </div>
+
+        <div class="section-title">Cenário 2 — Banco Protegido (com Token Anti-CSRF)</div>
+        <div class="grid">
+            <a class="card prot" href="3-cliente-protegido.html" target="_blank" rel="noopener">
+                <span class="num">3</span>
+                <h3>Cliente — Banco (Vítima)</h3>
+                <p>Mesma conta, agora exigindo um Token Anti-CSRF para autorizar a transferência.</p>
+                <div class="open">Abrir em nova aba →</div>
+            </a>
+            <a class="card prot" href="4-servidor-protegido.html" target="_blank" rel="noopener">
+                <span class="num">4</span>
+                <h3>Servidor — API Protegida</h3>
+                <p>Gera o token da sessão e só aprova a transferência se ele for válido.</p>
+                <div class="open">Abrir em nova aba →</div>
+            </a>
+        </div>
+
+        <div class="section-title">O Atacante</div>
+        <div class="grid single">
+            <a class="card hacker" href="5-site-hacker.html" target="_blank" rel="noopener">
+                <span class="num">5</span>
+                <h3>Site do Hacker</h3>
+                <p>Página maliciosa que dispara a requisição forjada contra o banco da vítima. Use contra os dois cenários e compare o resultado.</p>
+                <div class="open">Abrir em nova aba →</div>
+            </a>
+        </div>
+
+        <div class="section-title">Como testar</div>
+        <div class="steps">
+            <b>Ataque bem-sucedido:</b> abra o <b>Servidor (2)</b>, depois o <b>Cliente (1)</b> e faça login. Por fim, abra o <b>Site do Hacker (5)</b> e dispare o ataque — a transferência é aprovada.<br>
+            <b>Ataque bloqueado:</b> abra o <b>Servidor (4)</b>, depois o <b>Cliente (3)</b>, faça login e transfira usando o token (botão "Obter SMS"). Tente o <b>Hacker (5)</b> — sem o token, o servidor recusa.
+        </div>
+
+        <footer>UFF · TCC · Guilherme Moura &amp; Natã Rangel — Simulação educativa de CSRF</footer>
+    </div>
+</body>
+</html>

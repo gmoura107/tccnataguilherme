@@ -12,6 +12,15 @@
     </style>
 </head>
 <body>
+    <div id="info-edu" style="position: fixed; top: 10px; left: 10px; z-index: 1000;">
+        <button onclick="toggleInfo()" title="Sobre este site" style="width: 34px; height: 34px; border-radius: 50%; background: #3498db; color: white; border: none; font-weight: bold; font-style: italic; font-family: Georgia, 'Times New Roman', serif; font-size: 18px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); margin: 0; padding: 0; line-height: 1;">i</button>
+        <div id="info-popup" style="display: none; position: absolute; top: 100%; left: 0; margin-top: 6px; background: white; color: #2c3e50; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,0.18); width: 280px; padding: 14px 16px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; line-height: 1.5; text-align: left;">
+            <strong style="display: block; margin-bottom: 6px; font-size: 14px;">Simulação Educativa</strong>
+            Este site é uma <b>simulação educativa</b> desenvolvida por estudantes da <b>UFF</b> como Trabalho de Conclusão de Curso (TCC).<br><br>
+            <b>Nenhuma conta ou transação é real:</b> todas são fictícias, criadas apenas para fins didáticos.<br><br>
+            <span style="color: #7f8c8d;">Autores: <b>Guilherme Moura</b> e <b>Natã Rangel</b>.</span>
+        </div>
+    </div>
     <div id="dev-config" style="position: fixed; top: 10px; right: 10px; z-index: 1000;">
         <button onclick="toggleConfig()" style="width: auto; margin: 0; background: #e67e22; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">Configurações ▾</button>
         <div id="config-dropdown" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 6px; background: white; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 4px 14px rgba(0,0,0,0.18); min-width: 230px; overflow: hidden;">
@@ -33,6 +42,19 @@
             const d = document.getElementById('config-dropdown');
             if (cfg && d && !cfg.contains(e.target)) {
                 d.style.display = 'none';
+            }
+        });
+
+        function toggleInfo() {
+            const p = document.getElementById('info-popup');
+            p.style.display = (p.style.display === 'none' || !p.style.display) ? 'block' : 'none';
+        }
+
+        document.addEventListener('click', function(e) {
+            const box = document.getElementById('info-edu');
+            const p = document.getElementById('info-popup');
+            if (box && p && !box.contains(e.target)) {
+                p.style.display = 'none';
             }
         });
 
@@ -87,7 +109,13 @@
                     return;
                 }
 
-                // Aprova sem verificar token e subtrai saldo
+                // ===================== VULNERABILIDADE (CSRF) =====================
+                // O servidor confia APENAS na sessão ativa (o "cookie") e aprova a
+                // transferência sem exigir nem validar um token anti-CSRF.
+                // Como o navegador da vítima envia a sessão automaticamente, ele não
+                // distingue uma ação real do banco de uma requisição forjada por
+                // outro site. Resultado: o ataque CSRF é aceito e o dinheiro sai.
+                // =================================================================
                 let saldoAtual = parseFloat(localStorage.getItem('saldo_vuln') || 15000);
                 let valorTransf = parseFloat(data.valor);
                 saldoAtual -= valorTransf;

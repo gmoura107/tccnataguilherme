@@ -4,10 +4,15 @@ Este projeto é um ambiente simulado para estudo e demonstração de ataques de 
 
 O objetivo é visualizar como um site malicioso consegue forçar o navegador de uma vítima autenticada a executar ações (como uma transferência bancária) sem o seu consentimento — e como o uso de um token de validação impede esse ataque.
 
+## Por onde começar
+
+Abra o **`index.html`** — é a página central (hub) que reúne links para todas as outras e traz o passo a passo dos cenários. Cada link abre em uma nova aba, já que a simulação precisa de várias páginas abertas ao mesmo tempo (servidor + cliente + site do hacker).
+
 ## Arquivos do Projeto
 
 | Arquivo | Papel |
 |---------|-------|
+| **`index.html`** | **Página inicial (hub)** com os links e instruções de todos os cenários. |
 | **`1-cliente-vulneravel.html`** | Banco da vítima **sem** proteção anti-CSRF (login, Face ID e transferência). |
 | **`2-servidor-vulneravel.html`** | API/servidor que aprova as transferências **sem** validar token. |
 | **`3-cliente-protegido.html`** | Banco da vítima **com** Token Anti-CSRF (entregue via SMS simulado para fins didáticos). |
