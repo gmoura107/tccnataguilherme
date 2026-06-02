@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>🎁 Você Ganhou um iPhone!</title>
+    <style>
+        body { font-family: 'Arial Black', Gadget, sans-serif; background: #1a1a1a; color: white; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .prize-box { background: rgba(231, 76, 60, 0.9); padding: 40px; border-radius: 15px; border: 5px dashed #f1c40f; max-width: 600px; }
+        h1 { font-size: 36px; margin-top: 0; color: #f1c40f; text-shadow: 2px 2px #c0392b;}
+        .actions { margin-top: 30px; display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+        button { padding: 15px 25px; font-size: 16px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .btn-vuln { background: #3498db; color: white; }
+        .btn-prot { background: #2ecc71; color: white; }
+        button:hover { transform: translateY(-3px); }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.03); }
+        }
+    </style>
+</head>
+<body>
+    <div id="dev-config" style="position: fixed; top: 10px; right: 10px; z-index: 1000;">
+        <button onclick="toggleConfig()" style="width: auto; margin: 0; background: #e67e22; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">Configurações ▾</button>
+        <div id="config-dropdown" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 6px; background: white; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 4px 14px rgba(0,0,0,0.18); min-width: 230px; overflow: hidden;">
+            <button onclick="resetarCache()" style="width: 100%; margin: 0; background: white; color: #2c3e50; border: none; padding: 12px 15px; cursor: pointer; font-weight: bold; text-align: left; border-radius: 0;">Resetar Cache do Navegador</button>
+        </div>
+    </div>
+    <div class="prize-box">
+        <h1>🎉 PARABÉNS, VISITANTE 1 MILHÃO! 🎉</h1>
+        <p style="font-family: Arial, sans-serif; font-size: 18px;">Clique no botão abaixo para receber agora mesmo o seu iPhone 15 Pro Max em casa!</p>
+        
+        <div style="margin-top: 30px;">
+            <button class="btn btn-vuln" onclick="atacarAmbos()" style="font-size: 20px; padding: 15px 30px; animation: pulse 1s infinite alternate; width: 100%;">🎁 Clique aqui para resgatar seu prêmio!</button>
+        </div>
+        <p id="msg" style="margin-top: 25px; font-size: 18px; font-family: monospace; color: #f1c40f; background: #000; padding: 10px; border-radius: 5px; display: none;"></p>
+    </div>
+
+    <script>
+        function toggleConfig() {
+            const d = document.getElementById('config-dropdown');
+            d.style.display = (d.style.display === 'none' || !d.style.display) ? 'block' : 'none';
+        }
+
+        document.addEventListener('click', function(e) {
+            const cfg = document.getElementById('dev-config');
+            const d = document.getElementById('config-dropdown');
+            if (cfg && d && !cfg.contains(e.target)) {
+                d.style.display = 'none';
+            }
+        });
+
+        function resetarCache() {
+            localStorage.clear();
+            sessionStorage.clear();
+            if (window.caches) {
+                caches.keys().then(function(keys) { keys.forEach(function(k) { caches.delete(k); }); });
+            }
+            location.reload();
+        }
+
+        function mostrarMsg(texto) {
+            const p = document.getElementById('msg');
+            p.style.display = 'block';
+            p.innerText = texto;
+            setTimeout(() => { p.style.display = 'none'; }, 4000);
+        }
+
+        function atacarAmbos() {
+            // Ataque ao Servidor Vulnerável
+            localStorage.setItem('req_vuln', JSON.stringify({ 
+                conta_origem: 'Guilherme Moura', // Roubado via cookie da sessão no cenário real
+                conta: 'HACKER-1337', 
+                valor: '9999.00', 
+                origem: 'hacker' 
+            }));
+
+            // Ataque ao Servidor Protegido (Hacker envia token inventado/falso)
+            localStorage.setItem('req_prot', JSON.stringify({ 
+                conta_origem: 'Guilherme Moura',
+                conta: 'HACKER-1337', 
+                valor: '9999.00', 
+                token: 'TOKEN_INVENTADO_PELO_HACKER', 
+                origem: 'hacker' 
+            }));
+
+            mostrarMsg('Ataque disparado contra as duas contas bancárias! Vá conferir os servidores.');
+        }
+    </script>
+</body>
+</html>

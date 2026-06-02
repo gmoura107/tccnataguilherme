@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Servidor: Log do Banco (Protegido)</title>
+    <style>
+        body { font-family: 'Consolas', monospace; background: #1e1e1e; color: #d4d4d4; margin: 0; padding: 20px; }
+        h1 { color: #27ae60; border-bottom: 1px solid #444; padding-bottom: 10px; }
+        .token-panel { background: #34495e; padding: 15px; border-radius: 6px; font-size: 18px; text-align: center; border: 2px dashed #f1c40f; color: #f1c40f; margin-bottom: 20px; }
+        .log-box { background: #2d2d2d; border-radius: 4px; padding: 15px; margin-bottom: 10px; }
+        .log-box.success { border-left: 5px solid #27ae60; }
+        .log-box.error { border-left: 5px solid #e74c3c; }
+        .log-time { color: #858585; font-size: 12px; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <div id="dev-config" style="position: fixed; top: 10px; right: 10px; z-index: 1000;">
+        <button onclick="toggleConfig()" style="width: auto; margin: 0; background: #e67e22; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">Configurações ▾</button>
+        <div id="config-dropdown" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 6px; background: white; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 4px 14px rgba(0,0,0,0.18); min-width: 230px; overflow: hidden;">
+            <button onclick="resetarCache()" style="width: 100%; margin: 0; background: white; color: #2c3e50; border: none; padding: 12px 15px; cursor: pointer; font-weight: bold; text-align: left; border-radius: 0;">Resetar Cache do Navegador</button>
+        </div>
+    </div>
+    <h1>Servidor de Transações (API Protegida)</h1>
+    
+    <div class="token-panel">
+        TOKEN GERADO PARA A SESSÃO DO USUÁRIO:<br>
+        <strong style="font-size: 28px; color: #fff; letter-spacing: 2px;" id="display-token"></strong>
+    </div>
+
+    <p>Painel de Logs (Aguardando requisições com validação)...</p>
+    <div id="logs"></div>
+
+    <script>
+        function toggleConfig() {
+            const d = document.getElementById('config-dropdown');
+            d.style.display = (d.style.display === 'none' || !d.style.display) ? 'block' : 'none';
+        }
+
+        document.addEventListener('click', function(e) {
+            const cfg = document.getElementById('dev-config');
+            const d = document.getElementById('config-dropdown');
+            if (cfg && d && !cfg.contains(e.target)) {
+                d.style.display = 'none';
+            }
+        });
+
+        function resetarCache() {
+            localStorage.clear();
+            sessionStorage.clear();
+            if (window.caches) {
+                caches.keys().then(function(keys) { keys.forEach(function(k) { caches.delete(k); }); });
+            }
+            location.reload();
+        }
+
+        // Servidor gera um token único que só o usuário deveria ver (via backend na vida real)
+        const tokenServidor = 'CSRF-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        document.getElementById('display-token').innerText = tokenServidor;
+        localStorage.setItem('token_ativo', tokenServidor); // Salva para o cliente conseguir ler no SMS
+        localStorage.removeItem('req_prot');
+        
+        function addLog(conta_origem, conta, valor, tokenRecebido, isHacker) {
+            const logs = document.getElementById('logs');
+            const box = document.createElement('div');
+            const time = new Date().toLocaleTimeString();
+
+            // Validação de segurança CRÍTICA
+            if (tokenRecebido === tokenServidor) {
+                box.className = 'log-box success';
+                box.innerHTML = `<div class="log-time">[${time}] REQUISIÇÃO RECEBIDA</div>
+                                 <div style="color: #27ae60; font-weight: bold;">✔ TRANSFERÊNCIA APROVADA:</div>
+                                 <div>De: <strong style="color: #f1c40f;">${conta_origem}</strong> | Para: <strong>${conta}</strong></div>
+                                 <div>Valor: R$ <strong>${valor}</strong></div>
+                                 <div style="color: #2ecc71; font-size: 12px; margin-top: 5px;">*Token Anti-CSRF Validado com Sucesso! Ação autêntica confirmada.</div>`;
+            } else {
+                box.className = 'log-box error';
+                box.innerHTML = `<div class="log-time">[${time}] REQUISIÇÃO RECEBIDA</div>
+                                 <div style="color: #e74c3c; font-weight: bold;">❌ TRANSFERÊNCIA BLOQUEADA:</div>
+                                 <div>Tentativa De: <strong style="color: #f1c40f;">${conta_origem}</strong> | Para: <strong>${conta}</strong></div>
+                                 <div>Valor: R$ <strong>${valor}</strong></div>
+                                 <div style="color: #e74c3c; font-size: 12px; margin-top: 5px;">*Motivo: Token enviado (${tokenRecebido}) é inválido ou ausente. Servidor recusou!</div>`;
+            }
+            logs.prepend(box);
+        }
+
+        if (!localStorage.getItem('saldo_prot')) {
+            localStorage.setItem('saldo_prot', '15000.00');
+        }
+
+        setInterval(() => {
+            const req = localStorage.getItem('req_prot');
+            if (req) {
+                const data = JSON.parse(req);
+
+                // Verifica se a vítima está realmente com a sessão ativa
+                let sessaoAtiva = localStorage.getItem('sessao_ativa_prot') === 'true';
+                if (!sessaoAtiva) {
+                    const logs = document.getElementById('logs');
+                    const box = document.createElement('div');
+                    box.className = 'log-box error' + (data.origem === 'hacker' ? ' hacker' : '');
+                    const time = new Date().toLocaleTimeString();
+                    box.innerHTML = `<div class="log-time">[${time}] REQUISIÇÃO RECEBIDA</div>
+                                     <div style="color: #e74c3c; font-weight: bold;">❌ TRANSFERÊNCIA BLOQUEADA:</div>
+                                     <div style="color: #e74c3c; font-size: 13px; margin-top: 5px;">*Ação recusada: O usuário não está autenticado no banco! (Sem cookie de sessão ativo)</div>`;
+                    logs.prepend(box);
+                    localStorage.removeItem('req_prot');
+                    return;
+                }
+                
+                // Valida o token antes de deduzir o saldo
+                if (data.token === tokenServidor) {
+                    let saldoAtual = parseFloat(localStorage.getItem('saldo_prot') || 15000);
+                    let valorTransf = parseFloat(data.valor);
+                    saldoAtual -= valorTransf;
+                    localStorage.setItem('saldo_prot', saldoAtual.toFixed(2));
+
+                    // Registra a transação no extrato do cliente
+                    let extrato = JSON.parse(localStorage.getItem('extrato_prot') || '[]');
+                    extrato.unshift({ data: new Date().toLocaleString(), conta: data.conta, valor: data.valor, hacker: data.origem === 'hacker' });
+                    localStorage.setItem('extrato_prot', JSON.stringify(extrato));
+                }
+
+                addLog(data.conta_origem || 'Guilherme Moura', data.conta, data.valor, data.token, data.origem === 'hacker');
+                localStorage.removeItem('req_prot');
+            }
+        }, 500);
+    </script>
+</body>
+</html>

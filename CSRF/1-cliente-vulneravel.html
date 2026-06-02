@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Cliente: Banco (Vulnerável)</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .box { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 350px; }
+        h2 { border-bottom: 2px solid #e74c3c; padding-bottom: 10px; color: #2c3e50; margin-top: 0; }
+        .badge { background: #e74c3c; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+        label { display: block; margin-top: 15px; font-weight: bold; color: #34495e; }
+        input { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background: #e74c3c; color: white; border: none; padding: 12px; width: 100%; margin-top: 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #c0392b; }
+        #status { margin-top: 15px; text-align: center; font-weight: bold; color: #27ae60; }
+        
+        /* Face ID Styles */
+        #pre-login-screen { display: flex; flex-direction: column; width: 100%; }
+        #login-screen { display: none; flex-direction: column; align-items: center; text-align: center; }
+        #app-screen { display: none; width: 100%; }
+        .face-id-container { position: relative; width: 80px; height: 80px; margin: 30px auto 10px; cursor: pointer; }
+        .face-id-box { width: 100%; height: 100%; border: 3px solid #3498db; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 40px; transition: 0.3s; background: #fdfdfd; }
+        .face-id-container:hover .face-id-box { background: #eaf2f8; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2); }
+        .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: #27ae60; display: none; box-shadow: 0 0 10px #27ae60; border-radius: 2px; z-index: 10; }
+        .scanning .scan-line { display: block; animation: scanAnim 1.5s linear infinite; }
+        .scanning .face-id-box { border-color: #27ae60; opacity: 0.8; }
+        @keyframes scanAnim {
+            0% { top: 0; }
+            50% { top: 76px; }
+            100% { top: 0; }
+        }
+        .face-text { font-size: 14px; color: #7f8c8d; font-weight: bold; margin-bottom: 20px; }
+        .user-info { font-size: 16px; color: #2c3e50; font-weight: bold; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <div id="dev-config" style="position: fixed; top: 10px; right: 10px; z-index: 1000;">
+        <button onclick="toggleConfig()" style="width: auto; margin: 0; background: #e67e22; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">Configurações ▾</button>
+        <div id="config-dropdown" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 6px; background: white; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 4px 14px rgba(0,0,0,0.18); min-width: 230px; overflow: hidden;">
+            <button onclick="resetarCache()" style="width: 100%; margin: 0; background: white; color: #2c3e50; border: none; padding: 12px 15px; cursor: pointer; font-weight: bold; text-align: left; border-radius: 0;">Resetar Cache do Navegador</button>
+        </div>
+    </div>
+    <div class="box">
+        <!-- Tela de Login (Usuário e Senha) -->
+        <div id="pre-login-screen">
+            <h2 style="text-align: center;">Banco <span class="badge">S/ Token</span></h2>
+            <div style="background: #eaf2f8; border-left: 4px solid #3498db; padding: 10px; margin-bottom: 15px; font-size: 13px; color: #2c3e50;">
+                <strong>Dica de Acesso:</strong><br>
+                CPF: <b>123.456.789-00</b><br>
+                Senha: <b>123123</b>
+            </div>
+            <label>CPF</label>
+            <input type="text" id="login-user" placeholder="Digite seu CPF (123.456.789-00)">
+            <label>Senha</label>
+            <input type="password" id="login-pass" placeholder="Digite sua senha">
+            <button onclick="fazerLogin()">Acessar Conta</button>
+            <div id="login-error" style="color: #e74c3c; margin-top: 10px; font-weight: bold; display: none; text-align: center;">CPF ou senha incorretos!</div>
+        </div>
+
+        <!-- Tela de Face ID -->
+        <div id="login-screen">
+            <h2>Banco <span class="badge">S/ Token</span></h2>
+            <div class="user-info">Olá, Guilherme Moura</div>
+            <div class="face-id-container" id="face-btn" onclick="iniciarLogin()">
+                <div class="face-id-box" id="face-icon">😎</div>
+                <div class="scan-line"></div>
+            </div>
+            <div id="face-text" class="face-text">Toque para Autenticar (Face ID)</div>
+        </div>
+
+        <!-- Tela Principal da Conta (Oculta até Logar) -->
+        <div id="app-screen">
+            <h2>Banco <span class="badge">S/ Token</span></h2>
+            <div style="background: #27ae60; color: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 18px; font-weight: bold; text-align: center;">
+                Saldo Atual: R$ <span id="display-saldo">15000.00</span>
+            </div>
+            <p>Faça sua transferência:</p>
+            <label>Conta Destino</label>
+            <input type="text" id="conta" placeholder="Ex: 12345-6" value="Natã-021">
+            <label>Valor (R$)</label>
+            <input type="number" id="valor" placeholder="100.00" value="150">
+            <button onclick="enviar()">Transferir Dinheiro</button>
+            <button onclick="verExtrato()" style="background: #34495e; margin-top: 10px;">Ver Extrato</button>
+            <div id="status"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Extrato -->
+    <div id="extrato-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 3000; justify-content: center; align-items: center;">
+        <div style="background: white; width: 90%; max-width: 420px; max-height: 80vh; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+            <div style="background: #e74c3c; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
+                <strong style="font-size: 16px;">Extrato — Histórico de Transferências</strong>
+                <span onclick="fecharExtrato()" style="cursor: pointer; font-size: 24px; line-height: 1;">&times;</span>
+            </div>
+            <div id="extrato-lista" style="padding: 10px 20px; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <script>
+        function toggleConfig() {
+            const d = document.getElementById('config-dropdown');
+            d.style.display = (d.style.display === 'none' || !d.style.display) ? 'block' : 'none';
+        }
+
+        document.addEventListener('click', function(e) {
+            const cfg = document.getElementById('dev-config');
+            const d = document.getElementById('config-dropdown');
+            if (cfg && d && !cfg.contains(e.target)) {
+                d.style.display = 'none';
+            }
+        });
+
+        function resetarCache() {
+            localStorage.clear();
+            sessionStorage.clear();
+            if (window.caches) {
+                caches.keys().then(function(keys) { keys.forEach(function(k) { caches.delete(k); }); });
+            }
+            location.reload();
+        }
+
+        if (!localStorage.getItem('saldo_vuln')) {
+            localStorage.setItem('saldo_vuln', '15000.00');
+        }
+
+        setInterval(() => {
+            const saldoAtual = localStorage.getItem('saldo_vuln');
+            if (saldoAtual !== null) {
+                document.getElementById('display-saldo').innerText = parseFloat(saldoAtual).toFixed(2);
+            }
+        }, 500);
+
+        function fazerLogin() {
+            const user = document.getElementById('login-user').value;
+            const pass = document.getElementById('login-pass').value;
+            
+            if (user.trim() === '123.456.789-00' && pass === '123123') {
+                document.getElementById('pre-login-screen').style.display = 'none';
+                document.getElementById('login-screen').style.display = 'flex';
+            } else {
+                document.getElementById('login-error').style.display = 'block';
+            }
+        }
+
+        function iniciarLogin() {
+            const btn = document.getElementById('face-btn');
+            const text = document.getElementById('face-text');
+            const icon = document.getElementById('face-icon');
+            
+            // Inicia animação
+            btn.classList.add('scanning');
+            text.innerText = "Reconhecendo Rosto...";
+            
+            setTimeout(() => {
+                // Sucesso
+                btn.classList.remove('scanning');
+                icon.innerText = "✅";
+                icon.style.color = "#27ae60";
+                document.querySelector('.face-id-box').style.borderColor = "#27ae60";
+                text.innerText = "Autenticado com sucesso!";
+                text.style.color = "#27ae60";
+                
+                // Vai para o app
+                setTimeout(() => {
+                    localStorage.setItem('sessao_ativa_vuln', 'true'); // Simulando a criação do cookie de sessão
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('app-screen').style.display = 'block';
+                }, 1000);
+            }, 2000); // 2 segundos de fake scan
+        }
+
+        function enviar() {
+            const conta = document.getElementById('conta').value;
+            const valor = document.getElementById('valor').value;
+            const conta_origem = "Guilherme Moura";
+            // Simulando a requisição para o servidor (comunicação entre abas)
+            localStorage.setItem('req_vuln', JSON.stringify({ conta_origem, conta, valor, origem: 'cliente' }));
+            document.getElementById('status').innerText = "Solicitação enviada ao servidor!";
+            setTimeout(() => { document.getElementById('status').innerText = ""; }, 3000);
+        }
+
+        function verExtrato() {
+            const lista = document.getElementById('extrato-lista');
+            const hist = JSON.parse(localStorage.getItem('extrato_vuln') || '[]');
+            if (hist.length === 0) {
+                lista.innerHTML = '<div style="text-align: center; color: #7f8c8d; padding: 25px 0;">Nenhuma transferência realizada ainda.</div>';
+            } else {
+                lista.innerHTML = hist.map(t => `
+                    <div style="border-bottom: 1px solid #eee; padding: 12px 0; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: bold; color: #2c3e50;">Para: ${t.conta}</div>
+                            <div style="font-size: 12px; color: #7f8c8d;">${t.data}${t.hacker ? ' • ⚠️ origem suspeita' : ''}</div>
+                        </div>
+                        <div style="font-weight: bold; color: #e74c3c; white-space: nowrap;">- R$ ${parseFloat(t.valor).toFixed(2)}</div>
+                    </div>`).join('');
+            }
+            document.getElementById('extrato-modal').style.display = 'flex';
+        }
+
+        function fecharExtrato() {
+            document.getElementById('extrato-modal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
